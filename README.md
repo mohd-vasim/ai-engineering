@@ -1,1 +1,1 @@
-# hands-on
+# The repo will show hands-on projects on NLP, Computer Vision, LLM
