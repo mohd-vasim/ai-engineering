@@ -1,0 +1,13 @@
+[project]
+name = "slm-with-chat-history"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "pandas>=3.0.1",
+    "torch>=2.10.0",
+    "torchtext>=0.18.0",
+    "torchvision>=0.25.0",
+    "unsloth>=2026.3.4",
+]
