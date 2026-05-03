@@ -10,4 +10,5 @@ dependencies = [
     "torchtext>=0.18.0",
     "torchvision>=0.25.0",
     "unsloth>=2026.3.4",
+    "streamlit>=1.40.0",
 ]
