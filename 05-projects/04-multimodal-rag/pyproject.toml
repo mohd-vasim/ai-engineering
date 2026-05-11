@@ -5,37 +5,24 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "multimodal-rag"
 version = "0.1.0"
-description = "Source of all projects"
+description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "fastapi>=0.128.0",
-    "gradio>=6.3.0",
-    "jinja2>=3.1.6",
-    "langchain>=1.2.4",
-    "langchain-aws>=1.3.1",
-    "langchain-community>=0.4.1",
-    "langchain-google-genai>=4.2.0",
-    "langchain-openai>=1.1.7",
-    "langchain-qdrant>=1.1.0",
-    "langchain-tavily>=0.2.16",
-    "langchain-text-splitters>=1.1.1",
-    "pdf2image>=1.17.0",
-    "pdfplumber>=0.11.9",
-    "pi-heif>=1.3.0",
-    "pymilvus[milvus-lite]>=2.6.9",
-    "pymupdf>=1.27.1",
-    "pymupdf4llm[layout]>=0.3.4",
-    "pypdf>=6.6.0",
-    "python-dotenv>=1.2.1",
-    "qdrant-client>=1.16.2",
-    "slowapi>=0.1.9",
-    "streamlit>=1.53.0",
-    "unstructured>=0.21.5",
-    "unstructured-inference>=1.2.0",
-    "uvicorn>=0.40.0",
+    "langchain>=1.2.18",
+    "langchain-huggingface>=1.2.2",
+    "langchain-nvidia-ai-endpoints>=1.3.0",
+    "langchain-openai>=1.2.1",
+    "langchain-text-splitters>=1.1.2",
+    "onnxruntime==1.19.2",
+    "pillow>=12.2.0",
+    "pymupdf>=1.27.2.3",
+    "pymupdf4llm>=1.27.2.3",
+    "qdrant-client>=1.17.1",
+    "sentence-transformers>=5.4.1",
 ]
 
 
 [tool.setuptools.packages.find]
 include = ["mm_rag*"]
+
