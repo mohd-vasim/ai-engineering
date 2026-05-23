@@ -7,11 +7,16 @@ requires-python = ">=3.12"
 dependencies = [
     "chromadb>=1.4.1",
     "deepeval>=3.8.3",
+    "ipykernel>=7.2.0",
     "ipywidgets>=8.1.8",
     "langchain>=1.2.7",
     "langchain-community>=0.4.1",
     "langchain-core>=1.2.7",
     "langchain-openai>=1.1.7",
     "langgraph>=1.0.7",
+    "pandas>=3.0.3",
+    "pymupdf4llm>=1.27.2.3",
     "pypdf>=6.6.2",
+    "streamlit>=1.28.0",
+    "tiktoken>=0.12.0",
 ]
