@@ -30,4 +30,4 @@ jobs:
 
       - name: Push commit
         run: |
-          git push origin main
+          git push origin synthesize-rag-eval-dataset
