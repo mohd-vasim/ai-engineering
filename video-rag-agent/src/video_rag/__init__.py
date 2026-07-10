@@ -33,14 +33,17 @@ from video_rag.qdrant import (
 
 # Postgres backend (default)
 from video_rag.postgres import (
+    AGENT_TOOLS,
     build_filter,
     count_points,
+    describe_table,
     generate_context,
     get_video_snapshots,
     hybrid_search,
     ingest_industrial_data,
     init_db,
     list_categories,
+    list_tables,
     search_with_rerank,
 )
 
@@ -52,6 +55,7 @@ __all__ = [
     "load_mock_data",
     "derive_snapshot_ranges",
     # Postgres (default)
+    "AGENT_TOOLS",
     "init_db",
     "ingest_industrial_data",
     "hybrid_search",
@@ -60,6 +64,8 @@ __all__ = [
     "generate_context",
     "get_video_snapshots",
     "list_categories",
+    "list_tables",
+    "describe_table",
     "count_points",
     # Qdrant (explicit namespace)
     "AGENT_TOOLS_QDRANT",

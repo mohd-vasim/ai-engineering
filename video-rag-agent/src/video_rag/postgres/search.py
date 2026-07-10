@@ -1,17 +1,27 @@
-"""Postgres/pgvector hybrid search — dense (pgvector) + sparse (tsvector) with rerank.
+"""Postgres/pgvector hybrid search — dense (pgvector) + sparse (tsvector) with rerank."""
 
-Tool-decorated functions live here (no separate tools.py) — LangChain accepts
-plain callables, and @tool makes them ready for agent registration.
-"""
-
-import uuid
-from typing import Any
+from typing import Any, TypedDict
 
 import httpx
 
 from video_rag.config import settings
 from video_rag.embeddings import embed_text, load_mock_data
 from video_rag.postgres.db import get_conn
+
+
+class FilterParams(TypedDict, total=False):
+    """Filter keys accepted by generate_context / search functions.
+
+    All filters are AND-combined.
+    """
+    video_id: str
+    category: str
+    start_seconds_gte: float
+    start_seconds_lte: float
+    end_seconds_gte: float
+    end_seconds_lte: float
+    duration_seconds_gte: float
+    duration_seconds_lte: float
 
 
 # ---------------------------------------------------------------------------
@@ -131,25 +141,15 @@ def hybrid_search(
     query: str,
     limit: int = 10,
     prefetch_limit: int = 50,
-    **filters: Any,
+    filters: FilterParams | None = None,
 ) -> list[dict[str, Any]]:
     """Hybrid search using pgvector (dense) + tsvector (sparse) with weighted sum.
 
     Single SQL round-trip. Dense prefetch drives recall; combined score sorts.
-
-    Args:
-        query: Natural language query string.
-        limit: Number of final results to return.
-        prefetch_limit: Candidates for the dense prefetch branch.
-        **filters: Keyword args for build_filter().
-
-    Returns:
-        List of dicts with keys: video_id, video_title, category,
-        timestamp_range, duration_seconds, caption, dense_score, sparse_score.
     """
     dense_vec = embed_text(query)
 
-    where_clause, params = build_filter(**filters)
+    where_clause, params = build_filter(**(filters or {}))
     where_sql = where_clause
 
     sql = f"""
@@ -208,25 +208,15 @@ def search_with_rerank(
     limit: int = 10,
     prefetch_limit: int = 50,
     rerank_top_k: int = 5,
-    **filters: Any,
+    filters: FilterParams | None = None,
 ) -> list[dict[str, Any]]:
     """Full pipeline: hybrid search -> Cohere rerank -> return results.
-
-    Args:
-        query: Natural language query.
-        limit: Number of results from hybrid search.
-        prefetch_limit: Candidates per prefetch branch.
-        rerank_top_k: Top N results after reranking.
-        **filters: Keyword args for build_filter().
-
-    Returns:
-        List of dicts with payload + scores.
     """
     results = hybrid_search(
         query=query,
         limit=limit,
         prefetch_limit=prefetch_limit,
-        **filters,
+        filters=filters,
     )
 
     if not results:
@@ -262,7 +252,7 @@ def generate_context(
     limit: int = 10,
     prefetch_limit: int = 50,
     rerank_top_k: int = 5,
-    **filters: Any,
+    filters: FilterParams | None = None,
 ) -> dict[str, Any]:
     """Retrieve context via hybrid search + rerank + filters.
 
@@ -271,7 +261,9 @@ def generate_context(
         limit: Number of results from hybrid search.
         prefetch_limit: Candidates per prefetch branch.
         rerank_top_k: Top N results after reranking.
-        **filters: Keyword args for build_filter().
+        filters: FilterParams keys — category, video_id, start_seconds_gte,
+                 start_seconds_lte, end_seconds_gte, end_seconds_lte,
+                 duration_seconds_gte, duration_seconds_lte.
 
     Returns:
         Dict with keys: query, context (list), count.
@@ -281,7 +273,7 @@ def generate_context(
         limit=limit,
         prefetch_limit=prefetch_limit,
         rerank_top_k=rerank_top_k,
-        **filters,
+        filters=filters,
     )
 
     context = []
@@ -335,6 +327,81 @@ def get_video_snapshots(video_id: str) -> str:
     return "\n".join(lines)
 
 
+def list_tables() -> str:
+    """List all tables in the database with row counts and descriptions."""
+    conn = get_conn()
+    tables = conn.execute("""
+        SELECT
+            table_name,
+            (SELECT COUNT(*) FROM information_schema.columns
+             WHERE table_schema = 'public' AND table_name = t.table_name) AS column_count,
+            pg_size_pretty(pg_total_relation_size(quote_ident(table_name))) AS size
+        FROM information_schema.tables t
+        WHERE table_schema = 'public'
+        ORDER BY table_name
+    """).fetchall()
+
+    lines = [f"Tables ({len(tables)} total):\n"]
+    for t in tables:
+        row_count = conn.execute(
+            f"SELECT COUNT(*) AS cnt FROM {t['table_name']}"
+        ).fetchone()["cnt"]
+        lines.append(
+            f"  \u2022 {t['table_name']} — {t['column_count']} columns, "
+            f"{row_count} rows, {t['size']}"
+        )
+    conn.close()
+    return "\n".join(lines)
+
+
+def describe_table(table_name: str) -> str:
+    """Describe columns for a specific table.
+
+    Args:
+        table_name: Table name (e.g. 'videos', 'snapshots').
+
+    Returns:
+        Column info: name, type, nullable, default, description.
+    """
+    conn = get_conn()
+
+    # Check table exists
+    exists = conn.execute(
+        "SELECT EXISTS (SELECT 1 FROM information_schema.tables "
+        "WHERE table_schema = 'public' AND table_name = %s)",
+        [table_name],
+    ).fetchone()["exists"]
+    if not exists:
+        conn.close()
+        return f"Table '{table_name}' does not exist."
+
+    columns = conn.execute("""
+        SELECT
+            column_name, data_type, is_nullable,
+            column_default, ordinal_position
+        FROM information_schema.columns
+        WHERE table_schema = 'public' AND table_name = %s
+        ORDER BY ordinal_position
+    """, [table_name]).fetchall()
+
+    row_count = conn.execute(
+        f"SELECT COUNT(*) AS cnt FROM {table_name}"
+    ).fetchone()["cnt"]
+    conn.close()
+
+    lines = [
+        f"Table: {table_name}  ({len(columns)} columns, {row_count} rows)\n"
+    ]
+    for c in columns:
+        nullable = "NULL" if c["is_nullable"] == "YES" else "NOT NULL"
+        default = f" default {c['column_default']}" if c["column_default"] else ""
+        lines.append(
+            f"  \u2022 {c['column_name']}  {c['data_type']}  {nullable}{default}"
+        )
+
+    return "\n".join(lines)
+
+
 def list_categories() -> str:
     """List all available video categories in the dataset.
     Use this to discover what kinds of videos are stored."""
@@ -353,13 +420,11 @@ def list_categories() -> str:
 
 
 AGENT_TOOLS = [
-    build_filter,
-    rerank,
-    hybrid_search,
-    search_with_rerank,
     generate_context,
     get_video_snapshots,
     list_categories,
+    list_tables,
+    describe_table,
 ]
 
 if __name__ == "__main__":

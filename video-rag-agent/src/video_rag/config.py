@@ -50,8 +50,8 @@ class Settings:
         default_factory=lambda: os.environ.get("PG_PASSWORD", "")
     )
 
-    # Default data file
-    data_file: str = "data/mock_industrial_videos.json"
+    # Default data file (resolved to absolute path)
+    data_file: str = str(PROJECT_DIR / "data" / "mock_industrial_videos.json")
 
     def validate(self):
         if not self.openrouter_api_key:
