@@ -1,4 +1,23 @@
 
+## PostgreSQL Setup
+
+A Postgres instance with the `pgvector` extension is available via Docker Compose.
+
+Start the container:
+
+```bash
+docker-compose -f docker-files/pg-vector.yaml up -d
+```
+
+This creates a persistent volume at `~/.postgres_volume/`.
+
+Stop the container:
+
+```bash
+docker-compose -f docker-files/pg-vector.yaml down
+```
+
+---
 
 ## Qdrant Setup
 

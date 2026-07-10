@@ -1,21 +1,13 @@
 """Video RAG Agent — local package.
 
-Public API (AI-agent friendly):
-  generate_context()   — one-call context retrieval (hybrid search + rerank + filters)
-  hybrid_search()      — raw hybrid search (dense + sparse RRF)
-  search_with_rerank() — hybrid search → Cohere rerank
-  search_by_video_id() — fetch all snapshots for a video
-  build_filter()       — build metadata filter conditions
-  recreate_collection()— drop & recreate Qdrant collection
-  ingest_mock_data()   — load mock data and upsert into Qdrant
-  count_points()       — check collection size
-  load_mock_data()     — load the JSON dataset
-  embed_text()         — single text → dense vector
-  embed_texts()        — batch texts → dense vectors
-  get_sparse_embedding()— text → sparse BM25 vector
-  derive_snapshot_ranges() — add start_seconds / end_seconds to snapshots
+Two backends available:
+  - video_rag.qdrant  (original Qdrant-based, legacy)
+  - video_rag.postgres (Postgres/pgvector, default)
+
+Default exports use the postgres backend.
 """
 
+# Shared utilities (backend-agnostic)
 from video_rag.embeddings import (
     derive_snapshot_ranges,
     embed_text,
@@ -23,33 +15,62 @@ from video_rag.embeddings import (
     get_sparse_embedding,
     load_mock_data,
 )
-from video_rag.ingest import count_points, ingest_mock_data, recreate_collection
-from video_rag.search import (
-    build_filter,
-    generate_context,
-    hybrid_search,
+
+# Qdrant backend
+from video_rag.qdrant import (
+    AGENT_TOOLS_QDRANT,
+    build_points,
+    build_filter as build_filter_qdrant,
+    count_points as count_points_qdrant,
+    generate_context as generate_context_qdrant,
+    hybrid_search as hybrid_search_qdrant,
+    ingest_mock_data,
+    recreate_collection,
+    rerank as rerank_qdrant,
     search_by_video_id,
+    search_with_rerank as search_with_rerank_qdrant,
+)
+
+# Postgres backend (default)
+from video_rag.postgres import (
+    build_filter,
+    count_points,
+    generate_context,
+    get_video_snapshots,
+    hybrid_search,
+    ingest_industrial_data,
+    init_db,
+    list_categories,
     search_with_rerank,
 )
-from video_rag.tools import AGENT_TOOLS
 
 __all__ = [
-    # AI agent entry point
-    "generate_context",
-    "AGENT_TOOLS",
-    # Search
-    "hybrid_search",
-    "search_with_rerank",
-    "search_by_video_id",
-    "build_filter",
-    # Ingestion
-    "recreate_collection",
-    "ingest_mock_data",
-    "count_points",
-    # Data
-    "load_mock_data",
+    # Shared
     "embed_text",
     "embed_texts",
     "get_sparse_embedding",
+    "load_mock_data",
     "derive_snapshot_ranges",
+    # Postgres (default)
+    "init_db",
+    "ingest_industrial_data",
+    "hybrid_search",
+    "search_with_rerank",
+    "build_filter",
+    "generate_context",
+    "get_video_snapshots",
+    "list_categories",
+    "count_points",
+    # Qdrant (explicit namespace)
+    "AGENT_TOOLS_QDRANT",
+    "recreate_collection",
+    "ingest_mock_data",
+    "build_points",
+    "count_points_qdrant",
+    "hybrid_search_qdrant",
+    "search_with_rerank_qdrant",
+    "search_by_video_id",
+    "build_filter_qdrant",
+    "generate_context_qdrant",
+    "rerank_qdrant",
 ]

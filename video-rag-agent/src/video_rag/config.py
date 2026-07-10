@@ -2,7 +2,13 @@
 
 import os
 from dataclasses import dataclass, field
+from dotenv import load_dotenv
+from pathlib import Path
 
+
+PROJECT_DIR = Path(__file__).parent.parent.parent
+
+load_dotenv(PROJECT_DIR / ".env")
 
 @dataclass
 class Settings:
@@ -26,6 +32,26 @@ class Settings:
 
     # Dense vector size for text-embedding-3-small
     dense_vector_size: int = 1536
+
+    # Postgres / pgvector settings
+    pg_host: str = field(
+        default_factory=lambda: os.environ.get("PG_HOST", "localhost")
+    )
+    pg_port: int = field(
+        default_factory=lambda: int(os.environ.get("PG_PORT", "5432"))
+    )
+    pg_db: str = field(
+        default_factory=lambda: os.environ.get("PG_DB", "video_analytics")
+    )
+    pg_user: str = field(
+        default_factory=lambda: os.environ.get("PG_USER", "admin")
+    )
+    pg_password: str = field(
+        default_factory=lambda: os.environ.get("PG_PASSWORD", "")
+    )
+
+    # Default data file
+    data_file: str = "data/mock_industrial_videos.json"
 
     def validate(self):
         if not self.openrouter_api_key:
