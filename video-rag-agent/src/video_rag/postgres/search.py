@@ -14,6 +14,7 @@ class FilterParams(TypedDict, total=False):
 
     All filters are AND-combined.
     """
+
     video_id: str
     category: str
     start_seconds_gte: float
@@ -27,6 +28,7 @@ class FilterParams(TypedDict, total=False):
 # ---------------------------------------------------------------------------
 # Filter builder — build SQL WHERE clause from metadata conditions
 # ---------------------------------------------------------------------------
+
 
 def build_filter(
     *,
@@ -210,8 +212,7 @@ def search_with_rerank(
     rerank_top_k: int = 5,
     filters: FilterParams | None = None,
 ) -> list[dict[str, Any]]:
-    """Full pipeline: hybrid search -> Cohere rerank -> return results.
-    """
+    """Full pipeline: hybrid search -> Cohere rerank -> return results."""
     results = hybrid_search(
         query=query,
         limit=limit,
@@ -300,7 +301,8 @@ def generate_context(
 
 def get_video_snapshots(video_id: str) -> str:
     """Get all caption snapshots for a specific video by its video_id
-    (e.g. 'factory_001', 'retail_005'). Returns the full timeline of captions with timestamps."""
+    (e.g. 'factory_001', 'retail_005'). Returns the full timeline of captions with timestamps.
+    """
     conn = get_conn()
     rows = conn.execute(
         """
@@ -375,23 +377,24 @@ def describe_table(table_name: str) -> str:
         conn.close()
         return f"Table '{table_name}' does not exist."
 
-    columns = conn.execute("""
+    columns = conn.execute(
+        """
         SELECT
             column_name, data_type, is_nullable,
             column_default, ordinal_position
         FROM information_schema.columns
         WHERE table_schema = 'public' AND table_name = %s
         ORDER BY ordinal_position
-    """, [table_name]).fetchall()
+    """,
+        [table_name],
+    ).fetchall()
 
-    row_count = conn.execute(
-        f"SELECT COUNT(*) AS cnt FROM {table_name}"
-    ).fetchone()["cnt"]
+    row_count = conn.execute(f"SELECT COUNT(*) AS cnt FROM {table_name}").fetchone()[
+        "cnt"
+    ]
     conn.close()
 
-    lines = [
-        f"Table: {table_name}  ({len(columns)} columns, {row_count} rows)\n"
-    ]
+    lines = [f"Table: {table_name}  ({len(columns)} columns, {row_count} rows)\n"]
     for c in columns:
         nullable = "NULL" if c["is_nullable"] == "YES" else "NOT NULL"
         default = f" default {c['column_default']}" if c["column_default"] else ""
@@ -427,6 +430,15 @@ AGENT_TOOLS = [
     describe_table,
 ]
 
+tool_messages = {
+    "generate_context": "Searching captions...",
+    "get_video_snapshots": "Checking video snapshots...",
+    "list_categories": "Checking categories...",
+    "list_tables": "Exploring tables...",
+    "describe_table": "Describing tables...",
+}
+
+
 if __name__ == "__main__":
     import os
 
@@ -438,6 +450,7 @@ if __name__ == "__main__":
     if not api_key:
         print("SKIP: OPENROUTER_API_KEY not set")
         import sys
+
         sys.exit(0)
 
     # --- Test 1: build_filter ---
@@ -457,7 +470,9 @@ if __name__ == "__main__":
         results = hybrid_search("workers without helmet", limit=5)
         print(f"  Found {len(results)} results")
         for r in results:
-            print(f"    [{r['combined_score']:.4f}] {r['video_id']}: {r['caption'][:60]}...")
+            print(
+                f"    [{r['combined_score']:.4f}] {r['video_id']}: {r['caption'][:60]}..."
+            )
         if results:
             print("  ✅ Hybrid search OK")
         else:
@@ -472,8 +487,10 @@ if __name__ == "__main__":
         print(f"  Final results: {len(final)}")
         for f in final:
             p = f["payload"]
-            print(f"    [dense={f['dense_score']:.4f}, rerank={f['rerank_score']:.4f}] "
-                  f"{p['video_id']}: {p['caption'][:50]}...")
+            print(
+                f"    [dense={f['dense_score']:.4f}, rerank={f['rerank_score']:.4f}] "
+                f"{p['video_id']}: {p['caption'][:50]}..."
+            )
         if final:
             print("  ✅ Full pipeline OK")
     except Exception as e:
@@ -499,11 +516,15 @@ if __name__ == "__main__":
     # --- Test 6: generate_context ---
     print("\nTEST 6: generate_context")
     try:
-        ctx = generate_context("unauthorized entry restricted area", limit=5, rerank_top_k=3)
+        ctx = generate_context(
+            "unauthorized entry restricted area", limit=5, rerank_top_k=3
+        )
         print(f"  query: {ctx['query']}")
         print(f"  count: {ctx['count']}")
         for item in ctx["context"]:
-            print(f"    {item['video_id']} | {item['timestamp_range']} | {item['caption'][:50]}...")
+            print(
+                f"    {item['video_id']} | {item['timestamp_range']} | {item['caption'][:50]}..."
+            )
         if ctx["count"] > 0:
             print("  ✅ generate_context OK")
     except Exception as e:
