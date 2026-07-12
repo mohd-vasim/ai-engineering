@@ -142,5 +142,4 @@ cython_debug/
 
 # VS Code
 .vscode/ta
-tmp
 data
