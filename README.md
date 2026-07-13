@@ -176,3 +176,84 @@ Tutorial notebooks for building agents with `google-adk`:
 | Fine-Tuning | PEFT/LoRA, QLoRA, Unsloth, TRL (RLHF) |
 | Inference | llama.cpp, Ollama, GGUF |
 | Infrastructure | Docker, Docker Compose, Streamlit, uv |
+
+---
+
+## Quick Reference — Git Submodules
+
+### Add a Submodule
+```bash
+git submodule add <repository-url> <path>
+```
+
+**Example:**
+```bash
+git submodule add https://github.com/user/repo.git vendor/repo
+```
+
+**Commit the changes:**
+```bash
+git add .gitmodules path/to/submodule
+git commit -m "Add submodule: vendor/repo"
+```
+
+### Clone Repo with Submodules
+```bash
+# Fresh clone with all submodules
+git clone --recurse-submodules <repository-url>
+
+# Or if already cloned without submodules
+git submodule update --init --recursive
+```
+
+### Update Submodule to Latest Commit
+```bash
+cd path/to/submodule
+git pull origin main  # or your branch
+cd ..
+git add path/to/submodule
+git commit -m "Update submodule: vendor/repo"
+```
+
+### Remove a Submodule
+```bash
+# 1. Unregister the submodule
+git submodule deinit -f path/to/submodule
+
+# 2. Remove from git index
+git rm -f path/to/submodule
+
+# 3. Remove the submodule directory entry from .gitmodules
+# (edit .gitmodules manually or use --all flag)
+git config --file .gitmodules --remove-section submodule.path/to/submodule
+
+# 4. Stage and commit
+git add .gitmodules
+git commit -m "Remove submodule: vendor/repo"
+
+# 5. Clean up
+rm -rf .git/modules/path/to/submodule
+```
+
+### Check Submodule Status
+```bash
+# List all submodules
+git config --file .gitmodules --name-only --get-regexp path
+
+# Show submodule commits
+git submodule foreach git log --oneline -1
+
+# Show which submodules are dirty
+git status
+```
+
+### Switch Submodule Branch (Detached HEAD)
+By default, submodules are in detached HEAD state. To track a branch:
+
+```bash
+cd path/to/submodule
+git checkout <branch-name>
+cd ..
+git add path/to/submodule
+git commit -m "Update submodule to track branch: <branch-name>"
+```
