@@ -1,0 +1,3 @@
+[submodule "video-analytics-agent"]
+	path = video-analytics-agent
+	url = https://github.com/mohd-vasim/aie-video-analytics-agent
