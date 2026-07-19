@@ -1,0 +1,14 @@
+{
+  "coder": {
+    "successes": 4,
+    "failures": 0
+  },
+  "writer": {
+    "successes": 2,
+    "failures": 0
+  },
+  "ml_eng": {
+    "successes": 1,
+    "failures": 0
+  }
+}

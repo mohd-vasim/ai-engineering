@@ -1,0 +1,33 @@
+[project]
+name = "mas-bidder-agents"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "langchain-core>=0.3.0",
+    "langchain-ollama>=0.2.0",
+    "streamlit>=1.28.0",
+    "pandas>=2.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.5.0",
+    "ipykernel>=7.0",
+    "jupyter>=1.0",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
