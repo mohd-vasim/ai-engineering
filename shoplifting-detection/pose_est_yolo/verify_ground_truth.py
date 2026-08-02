@@ -15,7 +15,7 @@ import cv2
 import numpy as np
 from ultralytics import YOLO
 
-from shoplifting_pipeline import (
+from pose_est_yolo.shoplifting_pipeline import (
     analyze_person_pose, pick_device, MIN_CONF,
     WARNING_THRESHOLD, ALERT_THRESHOLD,
 )
