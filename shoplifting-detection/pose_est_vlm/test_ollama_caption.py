@@ -85,8 +85,8 @@ def extract_and_analyze(video_path, model_name="qwen3.5:2b-mlx", interval_second
 
 
 if __name__ == "__main__":
-    video_path = "sample_videos/gettyimages-1995820194-640_adpp.mp4"
+    video_path = "sample_videos/video_2.mp4"
     model_name = "qwen3.5:2b-mlx"
     
     print(f"Analyzing {video_path} with {model_name}...", flush=True)
-    extract_and_analyze(video_path, model_name=model_name, interval_seconds=0.5)
+    extract_and_analyze(video_path, model_name=model_name, interval_seconds=1.0)
