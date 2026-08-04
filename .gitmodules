@@ -1,3 +1,6 @@
 [submodule "video-analytics-agent"]
 	path = video-analytics-agent
 	url = https://github.com/mohd-vasim/aie-video-analytics-agent
+[submodule "shoplifting-detection"]
+	path = shoplifting-detection
+	url = https://github.com/mohd-vasim/aie-shoplifting-usecase.git
