@@ -172,3 +172,5 @@ cython_debug/
 
 # Huggingface
 *hf_cache
+
+**/stgcn_scripts/*
