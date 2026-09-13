@@ -1,0 +1,1 @@
+In our last meeting, we finalized the goals for Project Phoenix and assigned backend work to Tom and front-end to Maria.
